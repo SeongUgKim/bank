@@ -2,9 +2,10 @@ package api
 
 import (
 	"database/sql"
+	"net/http"
+
 	db "github.com/SeongUgKim/simplebank/db/sqlc"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type createAccountRequest struct {
