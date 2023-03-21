@@ -1,5 +1,11 @@
 DB_URL=postgresql://root:secret@localhost:5433/simple_bank?sslmode=disable
 
+network:
+	docker network create bank-network
+
+postgres:
+	docker run --name postrgres --network bank-network -p 5432:5433 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:12-alpine
+
 createdb:
 	docker exec -it postgres12 createdb --username=root --owner=root simple_bank
 
