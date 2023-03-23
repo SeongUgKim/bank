@@ -45,6 +45,9 @@ proto:
  	 --openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank\
  	 proto/*.proto
 
+static:
+	statik -src=./doc/swagger -dest=./doc
+
 evans:
 	evans --host localhost --port 9091 -r repl
 .PHONY: createdb, dropdb migrateup migrateup1 migratedown migratedown1 sqlc test server mock proto evans
