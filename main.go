@@ -1,24 +1,23 @@
 package main
 
 import (
-
-	// "fmt"
-	"context"
-	"fmt"
 	"log"
-	"time"
 
+	accountcontroller "github.com/SeongUgKim/simplebank/controller/account"
 	db "github.com/SeongUgKim/simplebank/db/postgres"
-	accountentity "github.com/SeongUgKim/simplebank/entity/account"
+	accounthandler "github.com/SeongUgKim/simplebank/handler/account"
 	accountrepository "github.com/SeongUgKim/simplebank/repository/account"
-	"github.com/gofrs/uuid"
 	_ "github.com/lib/pq"
 )
 
-func main() {
-	ctx := context.Background()
+const (
+	dbDriver      = "postgres"
+	dbSource      = "postgres://postgres:mysecretpassword@localhost:5433/simple_bank?sslmode=disable"
+	serverAddress = "0.0.0.0:3000"
+)
 
-	postgresDB, err := db.New("postgres", "postgres://postgres:mysecretpassword@localhost:5433/simple_bank?sslmode=disable")
+func main() {
+	postgresDB, err := db.New(dbDriver, dbSource)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,41 +29,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountUUID, err := uuid.NewV4()
+	controller, err := accountcontroller.New(accountcontroller.Params{
+		Repository: repo,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	account := accountentity.Account{
-		UUID:      accountUUID.String(),
-		Owner:     "Seong Ug Kim",
-		AmountE5:  10000000,
-		Currency:  "USD",
-		CreatedAt: time.Now(),
-	}
-
-	insertedAccount, err := repo.Insert(ctx, account)
+	handler, err := accounthandler.New(accounthandler.Params{
+		Controller: controller,
+	})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("%s, %s, %d, %s\n", insertedAccount.UUID, insertedAccount.Owner, insertedAccount.AmountE5, insertedAccount.Currency)
-	updateAccount := accountentity.Account{
-		UUID:      insertedAccount.UUID,
-		Owner:     insertedAccount.Owner,
-		AmountE5:  30000000,
-		Currency:  "USD",
-		CreatedAt: time.Now(),
+	if err := handler.Start(serverAddress); err != nil {
+		log.Fatal("cannot start server:", err)
 	}
 
-	updatedAccount, err := repo.Update(ctx, updateAccount)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Printf("%s, %s, %d, %s\n", updatedAccount.UUID, updatedAccount.Owner, updatedAccount.AmountE5, updatedAccount.Currency)
-
-	if err := repo.Delete(ctx, updateAccount.UUID); err != nil {
-		log.Fatal(err)
-	}
 }
