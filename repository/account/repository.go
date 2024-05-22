@@ -3,6 +3,7 @@ package account
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	db "github.com/SeongUgKim/simplebank/db/postgres"
 	entity "github.com/SeongUgKim/simplebank/entity/account"
@@ -36,7 +37,7 @@ type Repository interface {
 	Insert(ctx context.Context, account entity.Account) (entity.Account, error)
 	Fetch(ctx context.Context, accountUUID string) (entity.Account, error)
 	List(ctx context.Context) ([]entity.Account, error)
-	Update(ctx context.Context, account entity.Account) (entity.Account, error)
+	Update(ctx context.Context, accountUUID string, amountE5 int64) (entity.Account, error)
 	Delete(ctx context.Context, accountUUID string) error
 }
 
@@ -94,17 +95,26 @@ func (r *repository) List(ctx context.Context) ([]entity.Account, error) {
 	return accounts, nil
 }
 
-func (r *repository) Update(ctx context.Context, account entity.Account) (entity.Account, error) {
+func (r *repository) Update(ctx context.Context, accountUUID string, amountE5 int64) (entity.Account, error) {
 	tx, err := r.db.DB.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelRepeatableRead})
 	if err != nil {
 		return entity.Account{}, errors.Wrapf(err, "failed to begin transaction")
 	}
 
-	if _, err := readInTx(ctx, tx, account.UUID); err != nil {
+	account, err := readInTx(ctx, tx, accountUUID)
+	if err != nil {
 		return entity.Account{}, db.Rollback(tx, err)
 	}
 
-	if err := updateInTx(ctx, tx, account); err != nil {
+	newAccount := entity.Account{
+		UUID:      accountUUID,
+		Owner:     account.Owner,
+		AmountE5:  amountE5,
+		Currency:  account.Currency,
+		CreatedAt: time.Now(),
+	}
+
+	if err := updateInTx(ctx, tx, newAccount); err != nil {
 		return entity.Account{}, db.Rollback(tx, err)
 	}
 

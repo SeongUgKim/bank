@@ -18,3 +18,16 @@ type CreateAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
 }
+
+type GetAccountRequest struct {
+	UUID string `uri:"uuid" binding:"required"`
+}
+
+type UpdateAccountRequest struct {
+	UUID     string `json:"uuid" binding:"required"`
+	AmountE5 int64  `json:"amount_e5" binding:"required"`
+}
+
+type DeleteAccountRequest struct {
+	UUID string `uri:"uuid" binding:"required"`
+}

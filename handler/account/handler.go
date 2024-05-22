@@ -25,6 +25,10 @@ func New(params Params) (Handler, error) {
 
 	router := gin.Default()
 	router.POST("/accounts", handler.controller.Create)
+	router.GET("/accounts", handler.controller.List)
+	router.GET("/accounts/:uuid", handler.controller.Fetch)
+	router.PATCH("/accounts", handler.controller.Update)
+	router.DELETE("/accounts/:uuid", handler.controller.Delete)
 	handler.router = router
 
 	return &handler, nil
