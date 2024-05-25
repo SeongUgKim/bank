@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/SeongUgKim/simplebank/config"
 	accountcontroller "github.com/SeongUgKim/simplebank/controller/account"
 	db "github.com/SeongUgKim/simplebank/db/postgres"
 	accounthandler "github.com/SeongUgKim/simplebank/handler/account"
@@ -10,14 +11,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver      = "postgres"
-	dbSource      = "postgres://postgres:mysecretpassword@localhost:5433/simple_bank?sslmode=disable"
-	serverAddress = "0.0.0.0:3000"
-)
-
 func main() {
-	postgresDB, err := db.New(dbDriver, dbSource)
+	config, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal("cannot load config: ", err)
+	}
+
+	postgresDB, err := db.New(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,8 +43,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := handler.Start(serverAddress); err != nil {
+	if err := handler.Start(config.ServerAddress); err != nil {
 		log.Fatal("cannot start server:", err)
 	}
-
 }
